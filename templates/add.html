@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Add Item{% endblock %}
+
+{% block main %}
+    <h1>Add Item</h1>
+    <form action="/add" method="post">
+        <div class="mb-3">
+            <input autofocus class="form-control" name="item" placeholder="Item" type="text"/>
+        </div>
+        <div class="mb-3">
+            <input class="form-control" name="quantity" placeholder="Quantity" type="number"/>
+        </div>
+        <div class="mb-3">
+            <input class="form-control" name="price" placeholder="Price" type="number"/>
+        </div>
+        <div class="mb-3">
+            <input autofocus class="form-control" name="category" placeholder="Category" type="text"/>
+        </div>
+        <button class="btn btn-primary" type="submit">Add</button>
+    </form>
+{% endblock %}

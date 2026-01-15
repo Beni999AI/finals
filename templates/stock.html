@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block title %}Stock{% endblock %}
+
+{% block main %}
+    <h1>Stock</h1>
+    <form action="/stock" method="post">
+        <div class="mb-3">
+            <input class="form-control" name="item_id" placeholder="Item ID to search" type="number"/>
+        </div>
+        <div class="mb-3">
+            <input autofocus class="form-control" name="item" placeholder="Item" type="text"/>
+        </div>
+        <div class="mb-3">
+            <input class="form-control" name="quantity" placeholder="Quantity" type="number"/>
+        </div>
+        <div class="mb-3">
+            <input class="form-control" name="price" placeholder="Price" type="number"/>
+        </div>
+        <div class="mb-3">
+            <input autofocus class="form-control" name="category" placeholder="Category" type="text"/>
+        </div>
+        
+        <div class="mb-3">
+            Want to hide the item?
+            <input class="form-control" name="is_hidden" type="checkbox"/>
+        </div>
+        <div class="mb-3">
+            Want to delete the item?
+            <input class="form-control" name="is_deleted" type="checkbox"/>
+        </div>
+        <button class="btn btn-primary" type="submit">Change</button>
+    </form>
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item[0] }}</td>
+                <td>{{ item[1] }}</td>
+                <td>{{ item[2] }}</td>
+                <td>{{ item[3] }}</td>
+                <td>{{ item[4] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
