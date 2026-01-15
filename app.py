@@ -1,5 +1,5 @@
 from flask import Flask, flash, redirect, render_template, request, session
-from flask_session import Session, login_required
+from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 import sqlite3
 import datetime
@@ -9,10 +9,10 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-db = sqlite3.connect('app.db')
+db = sqlite3.connect("app.db")
 
 
-app.route("/signup", methods=["GET", "POST"])
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         username = request.form.get("username")
@@ -48,3 +48,14 @@ def signup():
         return redirect("/")
 
     return render_template("signup.html")
+
+@app.route("/")
+def index():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    user = db.execute(
+        "SELECT username FROM users WHERE id = ?", (user_id,)
+    ).fetchone()
+    return render_template("index.html", username=user[0])
