@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import sqlite3
 import datetime
 
+
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -58,7 +59,12 @@ def index():
     user = db.execute(
         "SELECT name FROM users WHERE id = ?", (user_id,)
     ).fetchone()
-    return render_template("index.html", username=user[0])
+    is_admin = db.execute(
+        "SELECT is_admin FROM users WHERE id = ?", (user_id,)
+    ).fetchone()[0]
+    if is_admin == 1:
+        return render_template("stock.html", items=db.execute("SELECT * FROM products").fetchall())
+    return render_template("index.html", username=user[0], items=[])
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -158,3 +164,107 @@ def stock():
             db.execute(query, tuple(params))
     print(db.execute("SELECT * FROM products").fetchall())
     return render_template("stock.html", items=db.execute("SELECT * FROM products").fetchall())
+
+
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    if request.method == "POST":
+        search_term = request.form.get("search_term")
+        results = db.execute(
+            "SELECT * FROM products WHERE name LIKE ?", ('%' + search_term + '%',)
+        ).fetchall()
+        return render_template("index.html", items=results)
+    return render_template("index.html", items=[])
+
+@app.route("/addtocart", methods=["POST"])
+def addtocart():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    product_id = request.form.get("item_id")
+    #quantity = int(request.form.get("quantity"))
+
+    current_cart = db.execute(
+        "SELECT cart FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()[0]
+    if current_cart:
+        current_cart += f";{product_id}"
+    else:
+        current_cart = str(product_id)
+    db.execute("UPDATE users SET cart = ? WHERE id = ?", (current_cart, user_id))
+    db.commit()
+    flash("Item added to cart.")
+    return redirect("/")
+
+@app.route("/cart", methods=["GET", "POST"])
+def cart():
+    if request.method == "POST":
+        item_id = request.form.get("item_id")
+        user_id = session["user_id"]
+        current_cart = db.execute(
+            "SELECT cart FROM users WHERE id = ?",
+            (user_id,)
+        ).fetchone()[0]
+        if current_cart:
+            item_ids = current_cart.split(";")
+            if item_id in item_ids:
+                item_ids.remove(item_id)
+                new_cart = ";".join(item_ids)
+                db.execute("UPDATE users SET cart = ? WHERE id = ?", (new_cart, user_id))
+                db.commit()
+                flash("Item removed from cart.")
+        return redirect("/cart")
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    user = db.execute(
+        "SELECT name, cart FROM users WHERE id = ?", (user_id,)
+    ).fetchone()
+    username = user[0]
+    cart = user[1]
+    items = []
+    if cart:
+        item_ids = cart.split(";")
+        for item_id in item_ids:
+            item = db.execute(
+                "SELECT * FROM products WHERE id = ?", (item_id,)
+            ).fetchone()
+            if item:
+                items.append(item)
+    return render_template("cart.html", username=username, items=items)
+
+
+@app.route("/buy", methods=["POST"])
+def buy():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    current_cart = db.execute(
+        "SELECT cart FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()[0]
+    if current_cart:
+        item_ids = current_cart.split(";")
+        for item_id in item_ids:
+            print(item_id)
+            item = db.execute(
+                "SELECT quantity FROM products WHERE id = ?", (int(item_id),)
+            ).fetchone()
+            print(item)
+            if item and item[0] > 0:
+                new_quantity = item[0] - 1
+                db.execute(
+                    "UPDATE products SET quantity = ? WHERE id = ?",
+                    (new_quantity, item_id)
+                )
+        db.execute("UPDATE users SET cart = NULL WHERE id = ?", (user_id,))
+        db.commit()
+        flash("Purchase successful.")
+    else:
+        flash("Your cart is empty.")
+    return redirect("/cart")

@@ -4,14 +4,7 @@
 
 {% block main %}
     <h1>Hi {{ username }}</h1>
-    <p>Welcome to the Inventory Management System.</p>
-    <br>
-    <form action="/search" method="post">
-        <div class="mb-3">
-            <input autofocus class="form-control" name="search_term" placeholder="Search items..." type="text"/>
-        </div>
-        <button class="btn btn-primary" type="submit">Search</button>
-    </form>
+    <p>This is your cart</p>
     <br>
     <table class="table table-striped mt-4">
         <thead>
@@ -31,9 +24,12 @@
                 <td>{{ item[2] }}</td>
                 <td>{{ item[3] }}</td>
                 <td>{{ item[4] }}</td>
-                <td><form action = "/addtocart" method="post"><input type="hidden" name="item_id" value="{{ item[0] }}"><button>Add to cart</button></form></td>
+                <td><form action = "/cart" method="post"><input type="hidden" name="item_id" value="{{ item[0] }}"><button>Remove</button></form></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    <form action="/buy" method="post">
+        <button class="btn btn-primary" type="submit">Buy</button>
+    </form>
 {% endblock %}
