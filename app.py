@@ -139,29 +139,23 @@ def stock():
         is_hidden = request.form.get("is_hidden")
         delete_item = request.form.get("is_deleted")
         if item_id:
-            query = "UPDATE products SET id = ?"
-            params = []
-            params.append(item_id)
             if item:
-                query += " AND name = ?"
-                params.append(item)
+                db.execute("UPDATE products SET name = ? WHERE id = ?", (item, item_id))
             if quantity:
-                query += " AND quantity = ?"
-                params.append(quantity)
+                db.execute("UPDATE products SET quantity = ? WHERE id = ?", (quantity, item_id))
             if price:
-                query += " AND price = ?"
-                params.append(price)
+                db.execute("UPDATE products SET price = ? WHERE id = ?", (price, item_id))
             if category:
-                query += " AND category = ?"
-                params.append(category)
+                db.execute("UPDATE products SET category = ? WHERE id = ?", (category, item_id))
             if is_hidden is not None:
-                query += " AND is_hidden = 1"
+                db.execute("UPDATE products SET is_hidden = ? WHERE id = ?", (is_hidden, item_id))
             if delete_item is not None:
-                query += " AND is_deleted = 1"
+                db.execute("DELETE FROM products WHERE id = ?", (item_id,))
+            db.commit()
+            flash("Item updated successfully.")
+            return redirect("/stock")
 
-            query += " WHERE id = ?"
-            params.append(item_id)
-            db.execute(query, tuple(params))
+            
     print(db.execute("SELECT * FROM products").fetchall())
     return render_template("stock.html", items=db.execute("SELECT * FROM products").fetchall())
 
