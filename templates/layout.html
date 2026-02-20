@@ -19,7 +19,11 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbar">
                     {% if session["user_id"] %}
-                        {% if session["is_user"] %}
+                        {% if session["is_admin"] %}
+                            <ul class="navbar-nav me-auto mt-2">
+                                <li class="nav-item"><a class="nav-link" href="/add">Add Item</a></li>
+                            </ul>
+                        {% else %}
                             <ul class="navbar-nav me-auto mt-2">
                                 <li class="nav-item"><a class="nav-link" href="/cart">Cart</a></li>
                             </ul>

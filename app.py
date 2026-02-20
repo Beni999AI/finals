@@ -87,14 +87,15 @@ def login():
             return render_template("login.html")
 
         user = db.execute(
-            "SELECT id, password FROM users WHERE name = ?", (username,)
+            "SELECT id, password, is_admin FROM users WHERE name = ?", (username,)
         ).fetchone()
 
         if user is None or not check_password_hash(user[1], password):
             flash("Invalid username or password.")
             return render_template("login.html")
-
+    
         session["user_id"] = user[0]
+        session["is_admin"] = user[2]
         return redirect("/")
 
     return render_template("login.html")
