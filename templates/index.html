@@ -36,4 +36,8 @@
             {% endfor %}
         </tbody>
     </table>
+    <form action="/balance" method="post">
+        <input type="text" name="balance" placeholder="Amount to add">
+        <button class="btn btn-secondary" type="submit">Submit</button>
+    </form>
 {% endblock %}

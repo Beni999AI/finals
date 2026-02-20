@@ -45,6 +45,11 @@ def signup():
         session["user_id"] = db.execute(
             "SELECT id FROM users WHERE name = ?", (username,)
         ).fetchone()[0]
+        checker = db.execute(
+            "SELECT is_admin FROM users WHERE name = ?", (username,)
+        ).fetchone()[0]
+        if checker == 0:
+            session["is_user"] = 0
 
         return redirect("/")
 
@@ -249,6 +254,10 @@ def buy():
             item = db.execute(
                 "SELECT quantity FROM products WHERE id = ?", (int(item_id),)
             ).fetchone()
+            price = db.execute(
+                "SELECT price FROM products WHERE id = ?", (int(item_id),)
+            ).fetchone()[0]
+            db.execute("UPDATE users SET balance = balance - ? WHERE id = ?", (price, user_id))
             print(item)
             if item and item[0] > 0:
                 new_quantity = item[0] - 1
@@ -256,9 +265,25 @@ def buy():
                     "UPDATE products SET quantity = ? WHERE id = ?",
                     (new_quantity, item_id)
                 )
+        
         db.execute("UPDATE users SET cart = NULL WHERE id = ?", (user_id,))
         db.commit()
         flash("Purchase successful.")
     else:
         flash("Your cart is empty.")
     return redirect("/cart")
+
+
+@app.route("/balance", methods=["GET", "POST"])
+def balance():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    if request.method == "POST":
+        balance = db.execute("SELECT balance FROM users WHERE id = ?", (user_id,)).fetchone()[0]
+        balance += int(request.form.get("balance"))
+        db.execute("UPDATE users SET balance = ? WHERE id = ?", (balance ,user_id))
+        db.commit()
+        flash("Balance updated successfully.")
+    return render_template("index.html")
